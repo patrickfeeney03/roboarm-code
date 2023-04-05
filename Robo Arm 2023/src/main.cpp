@@ -12,7 +12,12 @@ Servo rotateWrist;
 Servo claws;
 
 void setup() {
-  
+  base.attach(BASE_PIN);
+  shoulder.attach(SHOULDER_PIN);
+  elbow.attach(ELBOW_PIN);
+  wrist.attach(WRIST_PIN);
+  rotateWrist.attach(ROTATE_WRIST_PIN);
+  claws.attach(CLAWS_PIN);  
 }
 
 void loop() {
