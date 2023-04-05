@@ -13,6 +13,7 @@ Servo gripper;
 
 void moveServos();
 void clearSerialBuffer();
+void moveForward(uint8_t stepSize);
 
 void setup() {
   Serial.begin(115200);
@@ -23,11 +24,28 @@ void setup() {
   verticalWrist.attach(VERTICAL_WRIST_PIN);
   rotatoryWrist.attach(ROTATORY_WRIST_PIN);
   gripper.attach(GRIPPER_PIN);
+
+  shoulder.write(90);
+  elbow.write(90);
+  verticalWrist.write(90);
 }
 
 void loop() {
-  moveServos();
-  Serial.println("Where even am I?");
+  clearSerialBuffer();
+  Serial.println("Press r to run");
+  while (Serial.available() == 0);
+  uint8_t userInput = Serial.read();
+  Serial.print("Received: ");
+  Serial.println((char)userInput);
+
+  delay(50);
+
+  if (userInput == 'r') {
+    Serial.println("Moving arm forward");
+    moveForward(5);
+  }
+
+  delay(300);
 }
 
 void moveServos() {
@@ -75,3 +93,38 @@ void clearSerialBuffer() {
   }
 }
 
+void moveForward(uint8_t stepSize) {
+  Serial.println("Entering moveForward function");
+  
+  int shoulderAngle = shoulder.read();
+  int elbowAngle = elbow.read();
+  int verticalWristAngle = verticalWrist.read();
+
+  Serial.print("Initial angles: shoulder=");
+  Serial.print(shoulderAngle);
+  Serial.print(", elbow=");
+  Serial.print(elbowAngle);
+  Serial.print(", verticalWrist=");
+  Serial.println(verticalWristAngle);
+
+  shoulderAngle += stepSize;
+  elbowAngle += stepSize;
+  verticalWristAngle += stepSize;
+
+  shoulderAngle = constrain(shoulderAngle, 15, 165);
+  elbowAngle = constrain(elbowAngle, 0, 180);
+  verticalWristAngle = constrain(verticalWristAngle, 0, 180);
+
+  Serial.print("Updated angles: shoulder=");
+  Serial.print(shoulderAngle);
+  Serial.print(", elbow=");
+  Serial.print(elbowAngle);
+  Serial.print(", verticalWrist=");
+  Serial.println(verticalWristAngle);
+
+  shoulder.write(shoulderAngle);
+  elbow.write(elbowAngle);
+  verticalWrist.write(verticalWristAngle);
+
+  Serial.println("Exiting moveForward function");
+}
