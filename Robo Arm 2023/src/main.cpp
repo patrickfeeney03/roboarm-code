@@ -2,14 +2,14 @@
 #include <ESP32Servo.h>
 
 const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
-const uint8_t WRIST_PIN = 18, ROTATE_WRIST_PIN = 19, CLAWS_PIN = 21;
+const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
 
 Servo base;
 Servo shoulder;
 Servo elbow;
-Servo wrist;
-Servo rotateWrist;
-Servo claws;
+Servo verticalWrist;
+Servo rotatoryWrist;
+Servo gripper;
 
 void moveServos();
 void clearSerialBuffer();
@@ -20,9 +20,9 @@ void setup() {
   base.attach(BASE_PIN);
   shoulder.attach(SHOULDER_PIN);
   elbow.attach(ELBOW_PIN);
-  wrist.attach(WRIST_PIN);
-  rotateWrist.attach(ROTATE_WRIST_PIN);
-  claws.attach(CLAWS_PIN);
+  verticalWrist.attach(VERTICAL_WRIST_PIN);
+  rotatoryWrist.attach(ROTATORY_WRIST_PIN);
+  gripper.attach(GRIPPER_PIN);
 }
 
 void loop() {
@@ -45,7 +45,6 @@ void moveServos() {
   Serial.print("Angle: ");
   Serial.println(angle);
 
-
   switch (servoNum) {
     case 1:
       base.write(angle);
@@ -57,16 +56,16 @@ void moveServos() {
       elbow.write(angle);
       break;
     case 4:
-      wrist.write(angle);
+      verticalWrist.write(angle);
       break;
     case 5:
-      rotateWrist.write(angle);
+      rotatoryWrist.write(angle);
       break;
     case 6:
-      claws.write(angle);
+      gripper.write(angle);
       break;
     default:
-      printf("Something broke\n");
+      printf("Something broke\n\n");
   }
 }
 
@@ -75,3 +74,4 @@ void clearSerialBuffer() {
     Serial.read();
   }
 }
+
