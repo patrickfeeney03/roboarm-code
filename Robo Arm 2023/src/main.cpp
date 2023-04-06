@@ -42,7 +42,7 @@ void loop() {
 
   if (userInput == 'r') {
     Serial.println("Moving arm forward");
-    moveForward(5);
+    moveForward(3);
   }
 
   delay(300);
