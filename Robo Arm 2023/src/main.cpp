@@ -1,8 +1,15 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncTCP.h>
+
+const char* ssid = "moto20";
+const char* password = "parque2021";
 
 const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
+
+AsyncWebServer server(80);
 
 Servo base;
 Servo shoulder;
@@ -31,9 +38,87 @@ void setup() {
   verticalWrist.write(90);
   rotatoryWrist.write(90);
   gripper.write(50);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("CONNECTED");
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/html", R"rawliteral(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Keypress Detection</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+          }
+        </style>
+        <script>
+          let countVar = 0
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('keydown', function(event) {
+              const key = event.key;
+
+              switch (key) {
+                case 'w':
+                case 'W':
+                case 's':
+                case 'S':
+                case 'a':
+                case 'A':
+                case 'd':
+                case 'D':
+                case 'q':
+                case 'Q':
+                case 'e':
+                case 'E':
+                case 'j':
+                case 'J':
+                case 'i':
+                case 'I':
+                case 'k':
+                case 'K':
+                case 'o':
+                case 'O':
+                case 'ArrowUp':
+                case 'ArrowDown':
+                  document.getElementById('output').innerHTML = 'Pressed: ' + key;
+                  console.log(countVar+=3)
+                  break;
+                default:
+                  document.getElementById('output').innerHTML = 'Invalid key: ' + key;
+              }
+            });
+          });
+        </script>
+      </head>
+      <body>
+        <h1>Keypress Detection</h1>
+        <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, Arrow Up, or Arrow Down.</p>
+        <p id="output"></p>
+      </body>
+      </html>
+    )rawliteral");
+  });
+
+  server.on("/keypress", HTTP_GET, [](AsyncWebServerRequest *request){
+    if (request->hasParam("key")) {
+      String key = request->getParam("key")->value();
+      Serial.print("Received key: ");
+      Serial.println(key);
+    }
+    request->send(200, "text/plain", "OK");
+  });
+
+  server.begin();
 }
 
 void loop() {
+  /*
   clearSerialBuffer();
   Serial.println("Enter the command: ");
   while (Serial.available() == 0);
@@ -84,85 +169,11 @@ void loop() {
   }
 
   delay(300);
-}
-
-void moveServos() {
-  clearSerialBuffer();
-  Serial.print("1 - 6 to select servo: ");
-  while (Serial.available() == 0);
-  uint8_t servoNum = Serial.parseInt();
-  Serial.print("servoNum: ");
-  Serial.println(servoNum);
-  
-  clearSerialBuffer();
-  Serial.print("\nEnter angle: ");
-  while (Serial.available() == 0);
-  uint8_t angle = Serial.parseInt();
-  Serial.print("Angle: ");
-  Serial.println(angle);
-
-  switch (servoNum) {
-    case 1:
-      base.write(angle);
-      break;
-    case 2:
-      shoulder.write(angle);
-      break;
-    case 3:
-      elbow.write(angle);
-      break;
-    case 4:
-      verticalWrist.write(angle);
-      break;
-    case 5:
-      rotatoryWrist.write(angle);
-      break;
-    case 6:
-      gripper.write(angle);
-      break;
-    default:
-      printf("Something broke\n\n");
-  }
+  */
 }
 
 void clearSerialBuffer() {
   while (Serial.available()  > 0 ) {
     Serial.read();
   }
-}
-
-void moveForward(uint8_t stepSize) {
-  Serial.println("Entering moveForward function");
-  
-  int shoulderAngle = shoulder.read();
-  int elbowAngle = elbow.read();
-  int verticalWristAngle = verticalWrist.read();
-
-  Serial.print("Initial angles: shoulder=");
-  Serial.print(shoulderAngle);
-  Serial.print(", elbow=");
-  Serial.print(elbowAngle);
-  Serial.print(", verticalWrist=");
-  Serial.println(verticalWristAngle);
-
-  shoulderAngle += stepSize;
-  elbowAngle += stepSize;
-  verticalWristAngle += stepSize;
-
-  shoulderAngle = constrain(shoulderAngle, 15, 165);
-  elbowAngle = constrain(elbowAngle, 0, 180);
-  verticalWristAngle = constrain(verticalWristAngle, 0, 180);
-
-  Serial.print("Updated angles: shoulder=");
-  Serial.print(shoulderAngle);
-  Serial.print(", elbow=");
-  Serial.print(elbowAngle);
-  Serial.print(", verticalWrist=");
-  Serial.println(verticalWristAngle);
-
-  shoulder.write(shoulderAngle);
-  elbow.write(elbowAngle);
-  verticalWrist.write(verticalWristAngle);
-
-  Serial.println("Exiting moveForward function");
 }
