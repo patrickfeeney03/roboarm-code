@@ -13,63 +13,72 @@ const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>Keypress Detection</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
+        body {
+            font-family: Arial, sans-serif;
+        }
     </style>
     <script>
-      let socket;
+        document.addEventListener("DOMContentLoaded", function () {
+            const socket = new WebSocket("ws://" + location.hostname + ":81/ws");
 
-      document.addEventListener("DOMContentLoaded", function () {
-        socket = new WebSocket("ws://" + location.hostname + ":81");
+            socket.onopen = function (event) {
+                console.log("WebSocket connection opened:", event);
+            };
 
-        document.body.addEventListener("keydown", function (event) {
-          const key = event.key;
+            socket.onclose = function (event) {
+                console.log("WebSocket connection closed:", event);
+            };
 
-          switch (key) {
-            case "w":
-            case "W":
-            case "s":
-            case "S":
-            case "a":
-            case "A":
-            case "d":
-            case "D":
-            case "q":
-            case "Q":
-            case "e":
-            case "E":
-            case "j":
-            case "J":
-            case "i":
-            case "I":
-            case "k":
-            case "K":
-            case "o":
-            case "O":
-            case "u":
-            case "U":
-            case "h":
-            case "H":
-              document.getElementById("output").innerHTML = "Pressed: " + key;
-              socket.send(key);
-              break;
-            default:
-              document.getElementById("output").innerHTML =
-                "Invalid key: " + key;
-          }
+            socket.onerror = function (event) {
+                console.error("WebSocket error:", event);
+            };
+
+            let debounceTimeout;
+            let debounceDelay = 100; // Adjust this value to change the debounce delay (in milliseconds)
+
+            document.body.addEventListener("keydown", function (event) {
+                const key = event.key;
+
+                // Check if key is in allowed keys list
+                if (!["w", "W", "s", "S", "a", "A", "d", "D", "q", "Q", "e", "E", "j", "J", "i", "I", "k", "K", "o", "O", "u", "U", "h", "H"].includes(key)) {
+                    document.getElementById("output").innerHTML = "Invalid key: " + key;
+                    return;
+                }
+
+                // If debounce timeout is active, do not send any message
+                if (debounceTimeout) {
+                    return;
+                }
+
+                document.getElementById("output").innerHTML = "Pressed: " + key;
+
+                // Check if the WebSocket connection is open before sending data
+                if (socket.readyState === WebSocket.OPEN) {
+                    // Send keypress via WebSocket
+                    socket.send(key);
+                } else {
+                    console.error("WebSocket is not open. Cannot send data.");
+                }
+
+                // Set debounce timeout
+                debounceTimeout = setTimeout(() => {
+                    debounceTimeout = null;
+                }, debounceDelay);
+            });
         });
-      });
     </script>
-  </head>
-  <body>
+</head>
+
+<body>
     <h1>Keypress Detection</h1>
     <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, U, or H.</p>
     <p id="output"></p>
-  </body>
+</body>
+
 </html>
 )rawliteral";
 
