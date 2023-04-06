@@ -78,9 +78,8 @@ Servo verticalWrist;
 Servo rotatoryWrist;
 Servo gripper;
 
-void moveServos();
 void clearSerialBuffer();
-void moveForward(uint8_t stepSize);
+void handleKeypress(String key);
 
 void setup() {
   Serial.begin(115200);
@@ -116,8 +115,7 @@ void setup() {
   server.on("/keypress", HTTP_GET, [](AsyncWebServerRequest *request){
     if (request->hasParam("key")) {
       String key = request->getParam("key")->value();
-      Serial.print("Received key: ");
-      Serial.println(key);
+      handleKeypress(key);
     }
     request->send(200, "text/plain", "OK");
   });
@@ -126,11 +124,46 @@ void setup() {
 }
 
 void loop() {
-  
 }
 
 void clearSerialBuffer() {
   while (Serial.available()  > 0 ) {
     Serial.read();
+  }
+}
+
+void handleKeypress(String key) {
+  Serial.print("Received key: ");
+  Serial.println(key);
+
+  if (key == "w" || key == "W") {
+    Serial.print("w");
+
+  } else if (key == "s" || key == "S") {
+Serial.print("w");
+  } else if (key == "a" || key == "A") {
+    Serial.print("a");
+  } else if (key == "d" || key == "D") {
+    Serial.print("d");
+  } else if (key == "q" || key == "Q") {
+    Serial.print("q");
+  } else if (key == "e" || key == "E") {
+    Serial.print("e");
+  } else if (key == "j" || key == "J") {
+    Serial.print("j");
+  } else if (key == "l" || key == "L") {
+    Serial.print("l");
+  } else if (key == "i" || key == "I") {
+    Serial.print("i");
+  } else if (key == "k" || key == "K") {
+    Serial.print("k");
+  } else if (key == "o" || key == "O") {
+    Serial.print("o");
+  } else if (key == "p" || key == "P") {
+    Serial.print("p");
+  } else if (key == "ArrowUp") {
+    Serial.print("au");
+  } else if (key == "ArrowDown") {
+    Serial.print("ad");
   }
 }
