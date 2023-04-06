@@ -2,6 +2,7 @@
 #include <ESP32Servo.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
+#include <WebSocketsServer.h>
 
 const char* ssid = "moto20";
 const char* password = "parque2021";
@@ -73,6 +74,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 )rawliteral";
 
 AsyncWebServer server(80);
+WebSocketsServer webSocket(81);
 
 Servo base;
 Servo shoulder;
@@ -84,6 +86,7 @@ Servo gripper;
 void clearSerialBuffer();
 void handleKeypress(String key);
 void moveServo(Servo& servo, int change);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 void setup() {
   Serial.begin(115200);
@@ -116,14 +119,8 @@ void setup() {
     request->send_P(200, "text/html", index_html);
   });
 
-  server.on("/keypress", HTTP_GET, [](AsyncWebServerRequest *request){
-    if (request->hasParam("key")) {
-      String key = request->getParam("key")->value();
-      handleKeypress(key);
-    }
-    request->send(200, "text/plain", "OK");
-  });
-
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
   server.begin();
 }
 
@@ -172,4 +169,11 @@ void moveServo(Servo& servo, int change) {
   int currentPosition = servo.read();
   int newPosition = currentPosition + change;
   servo.write(newPosition);
+}
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+  if (type == WStype_TEXT) {
+    String key = String((char *)payload);
+    handleKeypress(key);
+  }
 }
