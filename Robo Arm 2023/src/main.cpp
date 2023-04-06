@@ -55,7 +55,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                             }
                         }
                     }
-                }, 10); // You can adjust this value to change the interval between sending commands
+                }, 30); // You can adjust this value to change the interval between sending commands
             }
 
             document.body.addEventListener("keydown", function (event) {
@@ -164,9 +164,9 @@ void handleKeypress(String key) {
   } else if (key == "s" || key == "S") {
     moveServo(shoulder, -3);
   } else if (key == "a" || key == "A") {
-    moveServo(base, 3);
-  } else if (key == "d" || key == "D") {
     moveServo(base, -3);
+  } else if (key == "d" || key == "D") {
+    moveServo(base, 3);
   } else if (key == "q" || key == "Q") {
     moveServo(rotatoryWrist, -3);
   } else if (key == "e" || key == "E") {
