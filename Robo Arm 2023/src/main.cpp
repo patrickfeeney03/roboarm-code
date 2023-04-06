@@ -9,6 +9,63 @@ const char* password = "parque2021";
 const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
 
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Keypress Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+  <script>
+    let countVar = 0
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.addEventListener('keydown', function(event) {
+        const key = event.key;
+
+        switch (key) {
+          case 'w':
+          case 'W':
+          case 's':
+          case 'S':
+          case 'a':
+          case 'A':
+          case 'd':
+          case 'D':
+          case 'q':
+          case 'Q':
+          case 'e':
+          case 'E':
+          case 'j':
+          case 'J':
+          case 'i':
+          case 'I':
+          case 'k':
+          case 'K':
+          case 'o':
+          case 'O':
+          case 'ArrowUp':
+          case 'ArrowDown':
+            document.getElementById('output').innerHTML = 'Pressed: ' + key;
+            console.log(countVar+=3)
+            break;
+          default:
+            document.getElementById('output').innerHTML = 'Invalid key: ' + key;
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>Keypress Detection</h1>
+  <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, Arrow Up, or Arrow Down.</p>
+  <p id="output"></p>
+</body>
+</html>
+)rawliteral";
+
 AsyncWebServer server(80);
 
 Servo base;
@@ -45,64 +102,12 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("CONNECTED");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/html", R"rawliteral(
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Keypress Detection</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-          }
-        </style>
-        <script>
-          let countVar = 0
-          document.addEventListener('DOMContentLoaded', function() {
-            document.body.addEventListener('keydown', function(event) {
-              const key = event.key;
-
-              switch (key) {
-                case 'w':
-                case 'W':
-                case 's':
-                case 'S':
-                case 'a':
-                case 'A':
-                case 'd':
-                case 'D':
-                case 'q':
-                case 'Q':
-                case 'e':
-                case 'E':
-                case 'j':
-                case 'J':
-                case 'i':
-                case 'I':
-                case 'k':
-                case 'K':
-                case 'o':
-                case 'O':
-                case 'ArrowUp':
-                case 'ArrowDown':
-                  document.getElementById('output').innerHTML = 'Pressed: ' + key;
-                  console.log(countVar+=3)
-                  break;
-                default:
-                  document.getElementById('output').innerHTML = 'Invalid key: ' + key;
-              }
-            });
-          });
-        </script>
-      </head>
-      <body>
-        <h1>Keypress Detection</h1>
-        <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, Arrow Up, or Arrow Down.</p>
-        <p id="output"></p>
-      </body>
-      </html>
-    )rawliteral");
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("Inside server on '/'");
+    request->send_P(200, "text/html", index_html);
   });
 
   server.on("/keypress", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -118,58 +123,7 @@ void setup() {
 }
 
 void loop() {
-  /*
-  clearSerialBuffer();
-  Serial.println("Enter the command: ");
-  while (Serial.available() == 0);
-  String command = Serial.readStringUntil('\n');
-  Serial.print("Received: ");
-  Serial.println(command);
-
-  int angleChange = 3;
-
-  if (command == "base+") {
-    int angle = base.read();
-    base.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "base-") {
-    int angle = base.read();
-    base.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "shoulder+") {
-    int angle = shoulder.read();
-    shoulder.write(constrain(angle + angleChange, 15, 165));
-  } else if (command == "shoulder-") {
-    int angle = shoulder.read();
-    shoulder.write(constrain(angle - angleChange, 15, 165));
-  } else if (command == "elbow+") {
-    int angle = elbow.read();
-    elbow.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "elbow-") {
-    int angle = elbow.read();
-    elbow.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "verticalWrist+") {
-    int angle = verticalWrist.read();
-    verticalWrist.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "verticalWrist-") {
-    int angle = verticalWrist.read();
-    verticalWrist.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "rotatoryWrist+") {
-    int angle = rotatoryWrist.read();
-    rotatoryWrist.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "rotatoryWrist-") {
-    int angle = rotatoryWrist.read();
-    rotatoryWrist.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "gripper+") {
-    int angle = gripper.read();
-    gripper.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "gripper-") {
-    int angle = gripper.read();
-    gripper.write(constrain(angle - angleChange, 0, 180));
-  } else {
-    Serial.println("Invalid command");
-  }
-
-  delay(300);
-  */
+  
 }
 
 void clearSerialBuffer() {
