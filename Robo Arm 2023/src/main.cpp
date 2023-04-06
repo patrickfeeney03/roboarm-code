@@ -25,24 +25,62 @@ void setup() {
   rotatoryWrist.attach(ROTATORY_WRIST_PIN);
   gripper.attach(GRIPPER_PIN);
 
+  base.write(90);
   shoulder.write(90);
   elbow.write(90);
   verticalWrist.write(90);
+  rotatoryWrist.write(90);
+  gripper.write(50);
 }
 
 void loop() {
   clearSerialBuffer();
-  Serial.println("Press r to run");
+  Serial.println("Enter the command: ");
   while (Serial.available() == 0);
-  uint8_t userInput = Serial.read();
+  String command = Serial.readStringUntil('\n');
   Serial.print("Received: ");
-  Serial.println((char)userInput);
+  Serial.println(command);
 
-  delay(50);
+  int angleChange = 3;
 
-  if (userInput == 'r') {
-    Serial.println("Moving arm forward");
-    moveForward(3);
+  if (command == "base+") {
+    int angle = base.read();
+    base.write(constrain(angle + angleChange, 0, 180));
+  } else if (command == "base-") {
+    int angle = base.read();
+    base.write(constrain(angle - angleChange, 0, 180));
+  } else if (command == "shoulder+") {
+    int angle = shoulder.read();
+    shoulder.write(constrain(angle + angleChange, 15, 165));
+  } else if (command == "shoulder-") {
+    int angle = shoulder.read();
+    shoulder.write(constrain(angle - angleChange, 15, 165));
+  } else if (command == "elbow+") {
+    int angle = elbow.read();
+    elbow.write(constrain(angle + angleChange, 0, 180));
+  } else if (command == "elbow-") {
+    int angle = elbow.read();
+    elbow.write(constrain(angle - angleChange, 0, 180));
+  } else if (command == "verticalWrist+") {
+    int angle = verticalWrist.read();
+    verticalWrist.write(constrain(angle + angleChange, 0, 180));
+  } else if (command == "verticalWrist-") {
+    int angle = verticalWrist.read();
+    verticalWrist.write(constrain(angle - angleChange, 0, 180));
+  } else if (command == "rotatoryWrist+") {
+    int angle = rotatoryWrist.read();
+    rotatoryWrist.write(constrain(angle + angleChange, 0, 180));
+  } else if (command == "rotatoryWrist-") {
+    int angle = rotatoryWrist.read();
+    rotatoryWrist.write(constrain(angle - angleChange, 0, 180));
+  } else if (command == "gripper+") {
+    int angle = gripper.read();
+    gripper.write(constrain(angle + angleChange, 0, 180));
+  } else if (command == "gripper-") {
+    int angle = gripper.read();
+    gripper.write(constrain(angle - angleChange, 0, 180));
+  } else {
+    Serial.println("Invalid command");
   }
 
   delay(300);
