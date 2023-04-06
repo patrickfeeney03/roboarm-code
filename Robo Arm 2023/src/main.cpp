@@ -21,8 +21,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       }
     </style>
     <script>
-      let countVar = 0;
+      let socket;
+
       document.addEventListener("DOMContentLoaded", function () {
+        socket = new WebSocket("ws://" + location.hostname + ":81");
+
         document.body.addEventListener("keydown", function (event) {
           const key = event.key;
 
@@ -52,10 +55,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "h":
             case "H":
               document.getElementById("output").innerHTML = "Pressed: " + key;
-              console.log((countVar += 3));
-              fetch("/keypress?key=" + key)
-                .then((response) => console.log(response))
-                .catch((error) => console.erro(error));
+              socket.send(key);
               break;
             default:
               document.getElementById("output").innerHTML =
@@ -125,6 +125,7 @@ void setup() {
 }
 
 void loop() {
+  webSocket.loop();
 }
 
 void clearSerialBuffer() {
