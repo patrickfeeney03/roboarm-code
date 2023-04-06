@@ -12,60 +12,63 @@ const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Keypress Detection</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-  </style>
-  <script>
-    let countVar = 0
-    document.addEventListener('DOMContentLoaded', function() {
-      document.body.addEventListener('keydown', function(event) {
-        const key = event.key;
+  <head>
+    <title>Keypress Detection</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+    </style>
+    <script>
+      let countVar = 0;
+      document.addEventListener("DOMContentLoaded", function () {
+        document.body.addEventListener("keydown", function (event) {
+          const key = event.key;
 
-        switch (key) {
-          case 'w':
-          case 'W':
-          case 's':
-          case 'S':
-          case 'a':
-          case 'A':
-          case 'd':
-          case 'D':
-          case 'q':
-          case 'Q':
-          case 'e':
-          case 'E':
-          case 'j':
-          case 'J':
-          case 'i':
-          case 'I':
-          case 'k':
-          case 'K':
-          case 'o':
-          case 'O':
-          case 'ArrowUp':
-          case 'ArrowDown':
-            document.getElementById('output').innerHTML = 'Pressed: ' + key;
-            console.log(countVar+=3)
-            fetch("/keypress?key=" + key)
-                .then(response => console.log(response))
-                .catch(error => console.erro(error))
-            break;
-          default:
-            document.getElementById('output').innerHTML = 'Invalid key: ' + key;
-        }
+          switch (key) {
+            case "w":
+            case "W":
+            case "s":
+            case "S":
+            case "a":
+            case "A":
+            case "d":
+            case "D":
+            case "q":
+            case "Q":
+            case "e":
+            case "E":
+            case "j":
+            case "J":
+            case "i":
+            case "I":
+            case "k":
+            case "K":
+            case "o":
+            case "O":
+            case "u":
+            case "U":
+            case "h":
+            case "H":
+              document.getElementById("output").innerHTML = "Pressed: " + key;
+              console.log((countVar += 3));
+              fetch("/keypress?key=" + key)
+                .then((response) => console.log(response))
+                .catch((error) => console.erro(error));
+              break;
+            default:
+              document.getElementById("output").innerHTML =
+                "Invalid key: " + key;
+          }
+        });
       });
-    });
-  </script>
-</head>
-<body>
-  <h1>Keypress Detection</h1>
-  <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, Arrow Up, or Arrow Down.</p>
-  <p id="output"></p>
-</body>
+    </script>
+  </head>
+  <body>
+    <h1>Keypress Detection</h1>
+    <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, U, or H.</p>
+    <p id="output"></p>
+  </body>
 </html>
 )rawliteral";
 
@@ -80,6 +83,7 @@ Servo gripper;
 
 void clearSerialBuffer();
 void handleKeypress(String key);
+void moveServo(Servo& servo, int change);
 
 void setup() {
   Serial.begin(115200);
@@ -137,33 +141,35 @@ void handleKeypress(String key) {
   Serial.println(key);
 
   if (key == "w" || key == "W") {
-    Serial.print("w");
+    moveServo(shoulder, 3);
 
   } else if (key == "s" || key == "S") {
-Serial.print("w");
+    moveServo(shoulder, -3);
   } else if (key == "a" || key == "A") {
-    Serial.print("a");
+    moveServo(base, 3);
   } else if (key == "d" || key == "D") {
-    Serial.print("d");
+    moveServo(base, -3);
   } else if (key == "q" || key == "Q") {
-    Serial.print("q");
+    moveServo(rotatoryWrist, -3);
   } else if (key == "e" || key == "E") {
-    Serial.print("e");
-  } else if (key == "j" || key == "J") {
-    Serial.print("j");
-  } else if (key == "l" || key == "L") {
-    Serial.print("l");
+    moveServo(rotatoryWrist, 3);
   } else if (key == "i" || key == "I") {
-    Serial.print("i");
+    moveServo(elbow, 3);
+  } else if (key == "j" || key == "J") {
+    moveServo(elbow, -3);
   } else if (key == "k" || key == "K") {
-    Serial.print("k");
+    moveServo(verticalWrist, -3);
   } else if (key == "o" || key == "O") {
-    Serial.print("o");
-  } else if (key == "p" || key == "P") {
-    Serial.print("p");
-  } else if (key == "ArrowUp") {
-    Serial.print("au");
-  } else if (key == "ArrowDown") {
-    Serial.print("ad");
+    moveServo(verticalWrist, 3);
+  } else if (key == "u" || key == "U") {
+    moveServo(gripper, 3);
+  } else if (key == "h" || key == "H") {
+    moveServo(gripper, -3);
   }
+}
+
+void moveServo(Servo& servo, int change) {
+  int currentPosition = servo.read();
+  int newPosition = currentPosition + change;
+  servo.write(newPosition);
 }
