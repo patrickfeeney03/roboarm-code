@@ -37,37 +37,48 @@ const char index_html[] PROGMEM = R"rawliteral(
                 console.error("WebSocket error:", event);
             };
 
-            let debounceTimeout;
-            let debounceDelay = 100; // Adjust this value to change the debounce delay (in milliseconds)
+            let keysPressed = {};
+            let intervalID;
+
+            function startSendingCommands() {
+                if (intervalID) {
+                    clearInterval(intervalID);
+                }
+
+                intervalID = setInterval(() => {
+                    for (let key in keysPressed) {
+                        if (keysPressed[key]) {
+                            if (socket.readyState === WebSocket.OPEN) {
+                                socket.send(key);
+                            } else {
+                                console.error("WebSocket is not open. Cannot send data.");
+                            }
+                        }
+                    }
+                }, 10); // You can adjust this value to change the interval between sending commands
+            }
 
             document.body.addEventListener("keydown", function (event) {
                 const key = event.key;
 
-                // Check if key is in allowed keys list
                 if (!["w", "W", "s", "S", "a", "A", "d", "D", "q", "Q", "e", "E", "j", "J", "i", "I", "k", "K", "o", "O", "u", "U", "h", "H"].includes(key)) {
                     document.getElementById("output").innerHTML = "Invalid key: " + key;
                     return;
                 }
 
-                // If debounce timeout is active, do not send any message
-                if (debounceTimeout) {
-                    return;
+                if (!keysPressed[key]) {
+                    keysPressed[key] = true;
+                    startSendingCommands();
                 }
+            });
 
-                document.getElementById("output").innerHTML = "Pressed: " + key;
+            document.body.addEventListener("keyup", function (event) {
+                const key = event.key;
 
-                // Check if the WebSocket connection is open before sending data
-                if (socket.readyState === WebSocket.OPEN) {
-                    // Send keypress via WebSocket
-                    socket.send(key);
-                } else {
-                    console.error("WebSocket is not open. Cannot send data.");
+                if (keysPressed[key]) {
+                    keysPressed[key] = false;
+                    document.getElementById("output").innerHTML = "Released: " + key;
                 }
-
-                // Set debounce timeout
-                debounceTimeout = setTimeout(() => {
-                    debounceTimeout = null;
-                }, debounceDelay);
             });
         });
     </script>
