@@ -50,6 +50,9 @@ const char index_html[] PROGMEM = R"rawliteral(
           case 'ArrowDown':
             document.getElementById('output').innerHTML = 'Pressed: ' + key;
             console.log(countVar+=3)
+            fetch("/keypress?key=" + key)
+                .then(response => console.log(response))
+                .catch(error => console.erro(error))
             break;
           default:
             document.getElementById('output').innerHTML = 'Invalid key: ' + key;
