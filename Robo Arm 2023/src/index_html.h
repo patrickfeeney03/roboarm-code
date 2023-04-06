@@ -41,12 +41,13 @@ const char index_html[] PROGMEM = R"rawliteral(
                         if (keysPressed[key]) {
                             if (socket.readyState === WebSocket.OPEN) {
                                 socket.send(key);
+                                console.log("key sent: " + key);
                             } else {
                                 console.error("WebSocket is not open. Cannot send data.");
                             }
                         }
                     }
-                }, 30); // You can adjust this value to change the interval between sending commands
+                }, 80); // You can adjust this value to change the interval between sending commands
             }
 
             document.body.addEventListener("keydown", function (event) {
@@ -68,18 +69,16 @@ const char index_html[] PROGMEM = R"rawliteral(
 
                 if (keysPressed[key]) {
                     keysPressed[key] = false;
-                    document.getElementById("output").innerHTML = "Released: " + key;
+                    document.getElementById("output").innerHTML = "Pressed: " + key;
                 }
             });
         });
     </script>
 </head>
-
 <body>
     <h1>Keypress Detection</h1>
     <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, U, or H.</p>
     <p id="output"></p>
 </body>
-
 </html>
 )rawliteral";

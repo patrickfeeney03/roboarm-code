@@ -25,7 +25,7 @@ Servo gripper;
 
 void clearSerialBuffer();
 void handleKeypress(String key);
-void moveServo(Servo& servo, int change);
+void moveServo(Servo& servo, int change, int lowConstrain, int highConstrain);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 void setup() {
@@ -65,15 +65,7 @@ void setup() {
 }
 
 void loop() {
-  //webSocket.loop();
-  int elbowA = elbow.read();
-  Serial.print("elbowA: ");
-  Serial.println(elbowA);
-  elbowA = elbowA + 3;
-  Serial.print("elbowA+1: ");
-  Serial.println(elbowA);
-  elbow.write(elbowA);  
-  delay(5);
+  webSocket.loop();
 }
 
 void clearSerialBuffer() {
@@ -87,37 +79,43 @@ void handleKeypress(String key) {
   Serial.println(key);
 
   if (key == "w" || key == "W") {
-    moveServo(shoulder, 3);
+    moveServo(shoulder, 3, 15, 165);
   } else if (key == "s" || key == "S") {
-    moveServo(shoulder, -3);
+    moveServo(shoulder, -3, 15, 165);
   } else if (key == "a" || key == "A") {
-    moveServo(base, -3);
+    moveServo(base, -3, 0, 180);
   } else if (key == "d" || key == "D") {
-    moveServo(base, 3);
+    moveServo(base, 3, 0, 180);
   } else if (key == "q" || key == "Q") {
-    moveServo(rotatoryWrist, -3);
+    moveServo(rotatoryWrist, -3, 0, 180);
   } else if (key == "e" || key == "E") {
-    moveServo(rotatoryWrist, 3);
+    moveServo(rotatoryWrist, 3, 0, 180);
   } else if (key == "i" || key == "I") {
-    moveServo(elbow, 3);
+    moveServo(elbow, 3, 0, 180);
   } else if (key == "j" || key == "J") {
-    moveServo(elbow, -3);
+    moveServo(elbow, -3, 0, 180);
   } else if (key == "k" || key == "K") {
-    moveServo(verticalWrist, -3);
+    moveServo(verticalWrist, -3, 0, 180);
   } else if (key == "o" || key == "O") {
-    moveServo(verticalWrist, 3);
+    moveServo(verticalWrist, 3, 0, 180);
   } else if (key == "u" || key == "U") {
-    moveServo(gripper, 3);
+    moveServo(gripper, 3, 10, 73);
   } else if (key == "h" || key == "H") {
-    moveServo(gripper, -3);
+    moveServo(gripper, -3, 10, 73);
   }
 }
 
-void moveServo(Servo& servo, int change) {
+void moveServo(Servo& servo, int change, int lowConstrain, int highConstrain) {
   int currentPosition = servo.read();
+  Serial.print("currentPosition: ");
+  Serial.print(currentPosition);
   int newPosition = currentPosition + change;
+  Serial.print("newPosition: ");
+  Serial.println(newPosition);
+  newPosition = constrain(newPosition, lowConstrain, highConstrain);
   servo.write(newPosition);
 }
+
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
   if (type == WStype_TEXT) {
