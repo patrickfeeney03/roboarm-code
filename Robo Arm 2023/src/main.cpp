@@ -25,8 +25,9 @@ Servo gripper;
 
 void clearSerialBuffer();
 void handleKeypress(String key);
-void moveServo(Servo& servo, int change, int lowConstrain, int highConstrain);
+void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
+void handleServo(char key, int value);
 
 void setup() {
   Serial.begin(115200);
@@ -105,23 +106,49 @@ void handleKeypress(String key) {
   }
 }
 
-void moveServo(Servo& servo, int change, int lowConstrain, int highConstrain) {
-  int currentPosition = servo.read();
-  Serial.print("currentPosition: ");
-  Serial.print(currentPosition);
-  int newPosition = currentPosition + change;
-  Serial.print("newPosition: ");
-  Serial.print(newPosition);
-  newPosition = constrain(newPosition, lowConstrain, highConstrain);
-  Serial.print("constrained: ");
-  Serial.println(newPosition);
-  servo.write(newPosition);
+// For both keypress and slider
+void handleServo(char key, int value) {
+  Serial.print("Received: ");
+  Serial.print(key);
+  Serial.print("\t");
+  Serial.println(value);
+
+  if (key == 'B') {
+    moveServo(base, value, 0, 180);
+  }
+  else if (key == 'S') {
+    moveServo(shoulder, value, 15, 165);
+  }
+  else if (key == 'E') {
+    moveServo(elbow, value, 0, 180);
+  }
+  else if (key == 'V') {
+    moveServo(verticalWrist, value, 0, 180);
+  }
+  else if (key == 'R') {
+    moveServo(rotatoryWrist, value, 0, 180);
+  }
+  else if (key == 'G') {
+    moveServo(gripper, value, 10, 73);
+  }
+  else {
+    Serial.println("Something went wrong. Currently inside handleServo()");
+  }
+}
+
+void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
+  int position = constrain(value, lowConstrain, highConstrain);
+
+  servo.write(position);
 }
 
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
   if (type == WStype_TEXT) {
-    String key = String((char *)payload);
-    handleKeypress(key);
+    String receivedData = String((char *)payload);
+    char key = receivedData.charAt(0);
+    int value = receivedData.substring(2).toInt();
+    handleServo(key, value);
+    //handleKeypress(key);
   }
 }
