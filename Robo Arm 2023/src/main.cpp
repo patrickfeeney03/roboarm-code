@@ -111,8 +111,10 @@ void moveServo(Servo& servo, int change, int lowConstrain, int highConstrain) {
   Serial.print(currentPosition);
   int newPosition = currentPosition + change;
   Serial.print("newPosition: ");
-  Serial.println(newPosition);
+  Serial.print(newPosition);
   newPosition = constrain(newPosition, lowConstrain, highConstrain);
+  Serial.print("constrained: ");
+  Serial.println(newPosition);
   servo.write(newPosition);
 }
 
