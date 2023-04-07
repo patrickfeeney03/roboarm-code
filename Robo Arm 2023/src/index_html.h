@@ -36,10 +36,15 @@ const char index_html[] PROGMEM = R"rawliteral(
 
             function updateSlider(key, delta) {
                 var slider = document.querySelector("input[data-key=" + key + "]");
-                if (slider) {
+                if (slider) {    
                     var newValue = parseInt(slider.value) + delta;
-                    slider.value = newValue;
-                    socket.send(key + ":" + slider.value);
+                    console.log("newValue:" + newValue);
+                    console.log("prevValue: " + slider.dataset.prevValue); 
+                    slider.value = newValue;                    
+                    if (slider.value != slider.dataset.prevValue) {
+                        slider.dataset.prevValue = slider.value;
+                        socket.send(key + ":" + slider.value);
+                    }        
                 }
             }
 
@@ -52,6 +57,13 @@ const char index_html[] PROGMEM = R"rawliteral(
                         break;
                     case 'S':
                         updateSlider('S', -1);
+                        break;
+                    case 'A':
+                        updateSlider('E', -1);
+                        break;
+                    case 'D':
+                        updateSlider('E', 1);
+                        break;
                 }
             });
         });
