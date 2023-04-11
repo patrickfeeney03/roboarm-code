@@ -1,8 +1,20 @@
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncTCP.h>
+#include <WebSocketsServer.h>
+#include <index_html.h>
+
+const char* ssid = "moto20";
+const char* password = "parque2021";
 
 const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
+
+
+
+AsyncWebServer server(80);
+WebSocketsServer webSocket(81);
 
 Servo base;
 Servo shoulder;
@@ -11,9 +23,11 @@ Servo verticalWrist;
 Servo rotatoryWrist;
 Servo gripper;
 
-void moveServos();
 void clearSerialBuffer();
-void moveForward(uint8_t stepSize);
+void handleKeypress(String key);
+void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
+void handleServo(char key, int value);
 
 void setup() {
   Serial.begin(115200);
@@ -31,98 +45,28 @@ void setup() {
   verticalWrist.write(90);
   rotatoryWrist.write(90);
   gripper.write(50);
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("CONNECTED");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("Inside server on '/'");
+    request->send_P(200, "text/html", index_html);
+  });
+
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  server.begin();
 }
 
 void loop() {
-  clearSerialBuffer();
-  Serial.println("Enter the command: ");
-  while (Serial.available() == 0);
-  String command = Serial.readStringUntil('\n');
-  Serial.print("Received: ");
-  Serial.println(command);
-
-  int angleChange = 3;
-
-  if (command == "base+") {
-    int angle = base.read();
-    base.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "base-") {
-    int angle = base.read();
-    base.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "shoulder+") {
-    int angle = shoulder.read();
-    shoulder.write(constrain(angle + angleChange, 15, 165));
-  } else if (command == "shoulder-") {
-    int angle = shoulder.read();
-    shoulder.write(constrain(angle - angleChange, 15, 165));
-  } else if (command == "elbow+") {
-    int angle = elbow.read();
-    elbow.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "elbow-") {
-    int angle = elbow.read();
-    elbow.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "verticalWrist+") {
-    int angle = verticalWrist.read();
-    verticalWrist.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "verticalWrist-") {
-    int angle = verticalWrist.read();
-    verticalWrist.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "rotatoryWrist+") {
-    int angle = rotatoryWrist.read();
-    rotatoryWrist.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "rotatoryWrist-") {
-    int angle = rotatoryWrist.read();
-    rotatoryWrist.write(constrain(angle - angleChange, 0, 180));
-  } else if (command == "gripper+") {
-    int angle = gripper.read();
-    gripper.write(constrain(angle + angleChange, 0, 180));
-  } else if (command == "gripper-") {
-    int angle = gripper.read();
-    gripper.write(constrain(angle - angleChange, 0, 180));
-  } else {
-    Serial.println("Invalid command");
-  }
-
-  delay(300);
-}
-
-void moveServos() {
-  clearSerialBuffer();
-  Serial.print("1 - 6 to select servo: ");
-  while (Serial.available() == 0);
-  uint8_t servoNum = Serial.parseInt();
-  Serial.print("servoNum: ");
-  Serial.println(servoNum);
-  
-  clearSerialBuffer();
-  Serial.print("\nEnter angle: ");
-  while (Serial.available() == 0);
-  uint8_t angle = Serial.parseInt();
-  Serial.print("Angle: ");
-  Serial.println(angle);
-
-  switch (servoNum) {
-    case 1:
-      base.write(angle);
-      break;
-    case 2:
-      shoulder.write(angle);
-      break;
-    case 3:
-      elbow.write(angle);
-      break;
-    case 4:
-      verticalWrist.write(angle);
-      break;
-    case 5:
-      rotatoryWrist.write(angle);
-      break;
-    case 6:
-      gripper.write(angle);
-      break;
-    default:
-      printf("Something broke\n\n");
-  }
+  webSocket.loop();
 }
 
 void clearSerialBuffer() {
@@ -131,38 +75,80 @@ void clearSerialBuffer() {
   }
 }
 
-void moveForward(uint8_t stepSize) {
-  Serial.println("Entering moveForward function");
-  
-  int shoulderAngle = shoulder.read();
-  int elbowAngle = elbow.read();
-  int verticalWristAngle = verticalWrist.read();
+void handleKeypress(String key) {
+  Serial.print("Received key: ");
+  Serial.println(key);
 
-  Serial.print("Initial angles: shoulder=");
-  Serial.print(shoulderAngle);
-  Serial.print(", elbow=");
-  Serial.print(elbowAngle);
-  Serial.print(", verticalWrist=");
-  Serial.println(verticalWristAngle);
+  if (key == "w" || key == "W") {
+    moveServo(shoulder, 3, 15, 165);
+  } else if (key == "s" || key == "S") {
+    moveServo(shoulder, -3, 15, 165);
+  } else if (key == "a" || key == "A") {
+    moveServo(base, -3, 0, 180);
+  } else if (key == "d" || key == "D") {
+    moveServo(base, 3, 0, 180);
+  } else if (key == "q" || key == "Q") {
+    moveServo(rotatoryWrist, -3, 0, 180);
+  } else if (key == "e" || key == "E") {
+    moveServo(rotatoryWrist, 3, 0, 180);
+  } else if (key == "i" || key == "I") {
+    moveServo(elbow, 3, 0, 180);
+  } else if (key == "j" || key == "J") {
+    moveServo(elbow, -3, 0, 180);
+  } else if (key == "k" || key == "K") {
+    moveServo(verticalWrist, -3, 0, 180);
+  } else if (key == "o" || key == "O") {
+    moveServo(verticalWrist, 3, 0, 180);
+  } else if (key == "u" || key == "U") {
+    moveServo(gripper, 3, 10, 73);
+  } else if (key == "h" || key == "H") {
+    moveServo(gripper, -3, 10, 73);
+  }
+}
 
-  shoulderAngle += stepSize;
-  elbowAngle += stepSize;
-  verticalWristAngle += stepSize;
+// For both keypress and slider
+void handleServo(char key, int value) {
+  Serial.print("Received: ");
+  Serial.print(key);
+  Serial.print("\t");
+  Serial.println(value);
 
-  shoulderAngle = constrain(shoulderAngle, 15, 165);
-  elbowAngle = constrain(elbowAngle, 0, 180);
-  verticalWristAngle = constrain(verticalWristAngle, 0, 180);
+  if (key == 'B') {
+    moveServo(base, value, 0, 180);
+  }
+  else if (key == 'S') {
+    moveServo(shoulder, value, 15, 165);
+  }
+  else if (key == 'E') {
+    moveServo(elbow, value, 0, 180);
+  }
+  else if (key == 'V') {
+    moveServo(verticalWrist, value, 0, 180);
+  }
+  else if (key == 'R') {
+    moveServo(rotatoryWrist, value, 0, 180);
+  }
+  else if (key == 'G') {
+    moveServo(gripper, value, 10, 73);
+  }
+  else {
+    Serial.println("Something went wrong. Currently inside handleServo()");
+  }
+}
 
-  Serial.print("Updated angles: shoulder=");
-  Serial.print(shoulderAngle);
-  Serial.print(", elbow=");
-  Serial.print(elbowAngle);
-  Serial.print(", verticalWrist=");
-  Serial.println(verticalWristAngle);
+void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
+  int position = constrain(value, lowConstrain, highConstrain);
 
-  shoulder.write(shoulderAngle);
-  elbow.write(elbowAngle);
-  verticalWrist.write(verticalWristAngle);
+  servo.write(position);
+}
 
-  Serial.println("Exiting moveForward function");
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+  if (type == WStype_TEXT) {
+    String receivedData = String((char *)payload);
+    char key = receivedData.charAt(0);
+    int value = receivedData.substring(2).toInt();
+    handleServo(key, value);
+    //handleKeypress(key);
+  }
 }
