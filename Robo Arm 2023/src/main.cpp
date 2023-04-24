@@ -24,7 +24,6 @@ Servo rotatoryWrist;
 Servo gripper;
 
 void clearSerialBuffer();
-void handleKeypress(String key);
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 void handleServo(char key, int value);
@@ -75,37 +74,6 @@ void clearSerialBuffer() {
   }
 }
 
-void handleKeypress(String key) {
-  Serial.print("Received key: ");
-  Serial.println(key);
-
-  if (key == "w" || key == "W") {
-    moveServo(shoulder, 3, 15, 165);
-  } else if (key == "s" || key == "S") {
-    moveServo(shoulder, -3, 15, 165);
-  } else if (key == "a" || key == "A") {
-    moveServo(base, -3, 0, 180);
-  } else if (key == "d" || key == "D") {
-    moveServo(base, 3, 0, 180);
-  } else if (key == "q" || key == "Q") {
-    moveServo(rotatoryWrist, -3, 0, 180);
-  } else if (key == "e" || key == "E") {
-    moveServo(rotatoryWrist, 3, 0, 180);
-  } else if (key == "i" || key == "I") {
-    moveServo(elbow, 3, 0, 180);
-  } else if (key == "j" || key == "J") {
-    moveServo(elbow, -3, 0, 180);
-  } else if (key == "k" || key == "K") {
-    moveServo(verticalWrist, -3, 0, 180);
-  } else if (key == "o" || key == "O") {
-    moveServo(verticalWrist, 3, 0, 180);
-  } else if (key == "u" || key == "U") {
-    moveServo(gripper, 3, 10, 73);
-  } else if (key == "h" || key == "H") {
-    moveServo(gripper, -3, 10, 73);
-  }
-}
-
 // For both keypress and slider
 void handleServo(char key, int value) {
   Serial.print("Received: ");
@@ -149,6 +117,5 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
     char key = receivedData.charAt(0);
     int value = receivedData.substring(2).toInt();
     handleServo(key, value);
-    //handleKeypress(key);
   }
 }
