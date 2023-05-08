@@ -23,7 +23,6 @@ Servo verticalWrist;
 Servo rotatoryWrist;
 Servo gripper;
 
-void clearSerialBuffer();
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 void handleServo(char key, int value);
@@ -66,12 +65,6 @@ void setup() {
 
 void loop() {
   webSocket.loop();
-}
-
-void clearSerialBuffer() {
-  while (Serial.available()  > 0 ) {
-    Serial.read();
-  }
 }
 
 // For both keypress and slider
