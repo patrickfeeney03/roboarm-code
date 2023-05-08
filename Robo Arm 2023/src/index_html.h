@@ -14,7 +14,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const socket = new WebSocket("ws://" + location.hostname + ":81/");
+            const socket = new WebSocket("ws://" + location.hostname + ":80/ws");
             socket.onopen = function (event) {
                 console.log("WebSocket connection opened:", event);
             };
@@ -101,7 +101,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                         if (keyState[key]) {
                             const mapping = keyToSliderMapping[key];
                             if (mapping) {
-                                const delta = keyState["SHIFT"] ? mapping.delta * 3 : mapping.delta;
+                                const delta = keyState["SHIFT"] ? mapping.delta * 5 : mapping.delta;
                                 updateSlider(mapping.key, delta);
                             }
 

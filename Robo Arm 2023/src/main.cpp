@@ -2,8 +2,9 @@
 #include <ESP32Servo.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
-#include <WebSocketsServer.h>
+//#include <WebSocketsServer.h>
 #include <index_html.h>
+#include <WiFi.h>
 
 const char* ssid = "moto20";
 const char* password = "parque2021";
@@ -12,7 +13,8 @@ const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
 
 AsyncWebServer server(80);
-WebSocketsServer webSocket(81);
+//WebSocketsServer webSocket(81);
+AsyncWebSocket ws("/ws");
 
 Servo base;
 Servo shoulder;
@@ -23,7 +25,8 @@ Servo gripper;
 
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void handleServo(char key, int value);
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
+void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+//void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 void setup() {
   Serial.begin(115200);
@@ -56,13 +59,16 @@ void setup() {
     request->send_P(200, "text/html", index_html);
   });
 
-  webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
+  //webSocket.begin();
+  //webSocket.onEvent(webSocketEvent);
+  ws.onEvent(onWsEvent);
+  server.addHandler(&ws);
   server.begin();
 }
 
 void loop() {
-  webSocket.loop();
+  //webSocket.loop();
+  //Serial.println("abc");
 }
 
 // For both keypress and slider
@@ -100,11 +106,24 @@ void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
   servo.write(position);
 }
 
+/*
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
   if (type == WStype_TEXT) {
     String receivedData = String((char *)payload);
     char key = receivedData.charAt(0);
     int value = receivedData.substring(2).toInt();
     handleServo(key, value);
+  }
+}*/
+
+void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
+  if(type == WS_EVT_DATA){
+    AwsFrameInfo *info = (AwsFrameInfo*)arg;
+    if(info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT){
+      String receivedData = String((char*)data);
+      char key = receivedData.charAt(0);
+      int value = receivedData.substring(2).toInt();
+      handleServo(key, value);
+    }
   }
 }

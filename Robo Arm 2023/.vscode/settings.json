@@ -1,3 +1,4 @@
 {
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "cmake.sourceDirectory": "C:/Users/Patrick/OneDrive - Atlantic TU/IoT/VSCODE/GitRepos/roboarm-code/Robo Arm 2023/.pio/libdeps/esp32doit-devkit-v1/AsyncTCP"
 }
