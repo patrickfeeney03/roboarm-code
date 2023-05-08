@@ -11,8 +11,6 @@ const char* password = "parque2021";
 const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
 
-
-
 AsyncWebServer server(80);
 WebSocketsServer webSocket(81);
 
@@ -24,8 +22,8 @@ Servo rotatoryWrist;
 Servo gripper;
 
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 void handleServo(char key, int value);
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 void setup() {
   Serial.begin(115200);
@@ -99,10 +97,8 @@ void handleServo(char key, int value) {
 
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
   int position = constrain(value, lowConstrain, highConstrain);
-
   servo.write(position);
 }
-
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
   if (type == WStype_TEXT) {
