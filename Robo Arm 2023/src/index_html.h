@@ -4,12 +4,61 @@
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Keypress Detection</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #FF6600;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        p {
+            padding-left: 20px;
+            font-size: 20px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 90%;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #FF6600;
+            cursor: pointer;
+        }
+
+        input[type=range]:focus::-webkit-slider-thumb {
+            background: #FF6600;
+        }
+
+        div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        label {
+            margin-right: 10px;
         }
     </style>
     <script>
@@ -26,18 +75,15 @@ const char index_html[] PROGMEM = R"rawliteral(
             };
 
             var sliders = document.querySelectorAll("input[type=range]");
-            const updateInterval = 1000 / 100; // 30 fps
             let lastSliderUpdate = 0;
             sliders.forEach(function (slider) {
                 slider.addEventListener("input", function () {
                     const timeNow = performance.now();
-                    if (timeNow - lastSliderUpdate >= updateInterval) {
-                        console.log(timeNow - lastSliderUpdate);
-                        var key = slider.getAttribute("data-key");
-                        var value = slider.value;
-                        socket.send(key + ":" + value);
-                        lastSliderUpdate = timeNow;
-                    }                    
+                    console.log(timeNow - lastSliderUpdate);
+                    var key = slider.getAttribute("data-key");
+                    var value = slider.value;
+                    socket.send(key + ":" + value);
+                    lastSliderUpdate = timeNow;
                 });
             });
 
@@ -62,14 +108,13 @@ const char index_html[] PROGMEM = R"rawliteral(
                 keyState[key] = false;
             });
 
-            
             const keyToSliderMapping = {
                 'W': { key: 'S', delta: 1 },
                 'S': { key: 'S', delta: -1 },
                 'A': { key: 'B', delta: -1 },
                 'D': { key: 'B', delta: 1 },
-                'Q': { key: 'R', delta: 1 },
-                'E': { key: 'R', delta: -1 },
+                'E': { key: 'R', delta: 1 },
+                'Q': { key: 'R', delta: -1 },
                 'U': { key: 'G', delta: 1 },
                 'H': { key: 'G', delta: -1 },
                 'I': { key: 'E', delta: 1 },
@@ -77,29 +122,12 @@ const char index_html[] PROGMEM = R"rawliteral(
                 'O': { key: 'V', delta: 1 },
                 'K': { key: 'V', delta: -1 },
             };
-            /*
-            const keyToSliderMapping = {
-                'W': { key: 'S', delta: 5 },
-                'S': { key: 'S', delta: -5 },
-                'A': { key: 'B', delta: -5 },
-                'D': { key: 'B', delta: 5 },
-                'Q': { key: 'R', delta: 5 },
-                'E': { key: 'R', delta: -5 },
-                'U': { key: 'G', delta: 5 },
-                'H': { key: 'G', delta: -5 },
-                'I': { key: 'E', delta: 5 },
-                'J': { key: 'E', delta: -5 },
-                'O': { key: 'V', delta: 5 },
-                'K': { key: 'V', delta: -5 },
-            };
-            */
+            
 
             function updateSlider(key, delta) {
                 var slider = document.querySelector("input[data-key=" + key + "]");
                 if (slider) {
                     var newValue = parseInt(slider.value) + delta;
-                    //console.log("newValue:" + newValue);
-                    //console.log("prevValue: " + slider.dataset.prevValue);
                     slider.value = newValue;
                     console.log("value: " + slider.value);
                     if (slider.value != slider.dataset.prevValue) {
@@ -112,16 +140,13 @@ const char index_html[] PROGMEM = R"rawliteral(
             let lastKeyUpdate = 0;
 
             function updateSliders(timestamp) {
-                if (timestamp - lastKeyUpdate > updateInterval) {
-                    lastKeyUpdate = timestamp;
-                    for (const key in keyState) {
-                        if (keyState[key]) {
-                            const mapping = keyToSliderMapping[key];
-                            if (mapping) {
-                                const delta = keyState["SHIFT"] ? mapping.delta * 3 : mapping.delta;
-                                updateSlider(mapping.key, delta);
-                            }
-
+                lastKeyUpdate = timestamp;
+                for (const key in keyState) {
+                    if (keyState[key]) {
+                        const mapping = keyToSliderMapping[key];
+                        if (mapping) {
+                            const delta = keyState["SHIFT"] ? mapping.delta * 2 : mapping.delta;
+                            updateSlider(mapping.key, delta);
                         }
                     }
                 }
@@ -134,10 +159,9 @@ const char index_html[] PROGMEM = R"rawliteral(
         });
     </script>
 </head>
-
 <body>
     <h1>Keypress Detection</h1>
-    <p>Press the specified keys: W, S, A, D, Q, E, J, I, K, O, U, or H.</p>
+    <p>Press the specified keys: W, S, A, D, Q, E, H, U, J, I, K, or O.</p>
     <p id="output"></p>
     <div>
         <label>Base:</label>
@@ -164,6 +188,5 @@ const char index_html[] PROGMEM = R"rawliteral(
         <input type="range" min="10" max="73" value="50" step="1" data-key="G">
     </div>
 </body>
-
 </html>
 )rawliteral";

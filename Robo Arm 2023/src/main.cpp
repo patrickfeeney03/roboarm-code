@@ -99,6 +99,7 @@ void handleServo(char key, int value) {
     moveServo(elbow, value, 0, 180);
   }
   else if (key == 'V') {
+    value = 180 - value;
     moveServo(verticalWrist, value, 0, 180);
   }
   else if (key == 'R') {
