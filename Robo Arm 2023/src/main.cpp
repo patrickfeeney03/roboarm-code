@@ -3,10 +3,6 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
 #include <index_html.h>
-#include <WiFi.h>
-
-unsigned long counter = 0;
-unsigned long startTime = 0;
 
 const char* ssid = "moto20";
 const char* password = "parque2021";
@@ -30,7 +26,6 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
 void setup() {
   Serial.begin(115200);
-  startTime = millis();
 
   base.attach(BASE_PIN);
   shoulder.attach(SHOULDER_PIN);
@@ -66,11 +61,6 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - startTime >= 1000) {
-    Serial.println(counter);
-    counter = 0;
-    startTime = millis();
-  }
 }
 
 // For both keypress and slider
@@ -105,7 +95,6 @@ void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
 }
 
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-  counter++;
   if(type == WS_EVT_CONNECT){
     Serial.println("WebSocket client connected");
   } else if(type == WS_EVT_DISCONNECT){
