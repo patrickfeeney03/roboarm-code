@@ -26,7 +26,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             };
 
             var sliders = document.querySelectorAll("input[type=range]");
-            const updateInterval = 1000 / 30; // 30 fps
+            const updateInterval = 1000 / 100; // 30 fps
             let lastSliderUpdate = 0;
             sliders.forEach(function (slider) {
                 slider.addEventListener("input", function () {
@@ -62,6 +62,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 keyState[key] = false;
             });
 
+            
             const keyToSliderMapping = {
                 'W': { key: 'S', delta: 1 },
                 'S': { key: 'S', delta: -1 },
@@ -76,6 +77,22 @@ const char index_html[] PROGMEM = R"rawliteral(
                 'O': { key: 'V', delta: 1 },
                 'K': { key: 'V', delta: -1 },
             };
+            /*
+            const keyToSliderMapping = {
+                'W': { key: 'S', delta: 5 },
+                'S': { key: 'S', delta: -5 },
+                'A': { key: 'B', delta: -5 },
+                'D': { key: 'B', delta: 5 },
+                'Q': { key: 'R', delta: 5 },
+                'E': { key: 'R', delta: -5 },
+                'U': { key: 'G', delta: 5 },
+                'H': { key: 'G', delta: -5 },
+                'I': { key: 'E', delta: 5 },
+                'J': { key: 'E', delta: -5 },
+                'O': { key: 'V', delta: 5 },
+                'K': { key: 'V', delta: -5 },
+            };
+            */
 
             function updateSlider(key, delta) {
                 var slider = document.querySelector("input[data-key=" + key + "]");

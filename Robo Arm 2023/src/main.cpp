@@ -6,6 +6,9 @@
 #include <index_html.h>
 #include <WiFi.h>
 
+unsigned long counter = 0;
+unsigned long startTime = 0;
+
 const char* ssid = "moto20";
 const char* password = "parque2021";
 
@@ -30,6 +33,7 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
 
 void setup() {
   Serial.begin(115200);
+  startTime = millis();
 
   base.attach(BASE_PIN);
   shoulder.attach(SHOULDER_PIN);
@@ -69,6 +73,11 @@ void setup() {
 void loop() {
   //webSocket.loop();
   //Serial.println("abc");
+  if (millis() - startTime >= 1000) {
+    Serial.println(counter);
+    counter = 0;
+    startTime = millis();
+  }
 }
 
 // For both keypress and slider
@@ -119,6 +128,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 }*/
 
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  counter++;
   if(type == WS_EVT_CONNECT){
     Serial.println("WebSocket client connected");
   } else if(type == WS_EVT_DISCONNECT){
@@ -126,9 +136,9 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
   } else if(type == WS_EVT_DATA){
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if(info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT){
-      Serial.print("Inside function Received: ");
-      Serial.write(data, len);
-      Serial.println();
+      
+     
+      
       // parse the message and handle the servo
       
       char receivedData[len + 1];
@@ -138,10 +148,10 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
       char key = receivedData[0];
       int value = atoi(receivedData + delimiterIndex + 1);
       
-      Serial.print("After parsing: ");
-      Serial.print(key);
-      Serial.println(value);
+    
+      
       handleServo(key, value);
+      
     }
   }
 }
