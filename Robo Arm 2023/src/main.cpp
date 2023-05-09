@@ -2,7 +2,6 @@
 #include <ESP32Servo.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
-//#include <WebSocketsServer.h>
 #include <index_html.h>
 #include <WiFi.h>
 
@@ -16,7 +15,6 @@ const uint8_t BASE_PIN = 15, SHOULDER_PIN = 16, ELBOW_PIN = 17;
 const uint8_t VERTICAL_WRIST_PIN = 18, ROTATORY_WRIST_PIN = 19, GRIPPER_PIN = 21;
 
 AsyncWebServer server(80);
-//WebSocketsServer webSocket(81);
 AsyncWebSocket ws("/ws");
 
 Servo base;
@@ -29,7 +27,6 @@ Servo gripper;
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void handleServo(char key, int value);
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-//void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
 void setup() {
   Serial.begin(115200);
@@ -63,16 +60,12 @@ void setup() {
     request->send_P(200, "text/html", index_html);
   });
 
-  //webSocket.begin();
-  //webSocket.onEvent(webSocketEvent);
   ws.onEvent(onWsEvent);
   server.addHandler(&ws);
   server.begin();
 }
 
 void loop() {
-  //webSocket.loop();
-  //Serial.println("abc");
   if (millis() - startTime >= 1000) {
     Serial.println(counter);
     counter = 0;
@@ -82,13 +75,6 @@ void loop() {
 
 // For both keypress and slider
 void handleServo(char key, int value) {
-  /*
-  Serial.print("Received: ");
-  Serial.print(key);
-  Serial.print("\t");
-  Serial.println(value);
-  */
-
   if (key == 'B') {
     moveServo(base, value, 0, 180);
   }
@@ -118,16 +104,6 @@ void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
   servo.write(position);
 }
 
-/*
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
-  if (type == WStype_TEXT) {
-    String receivedData = String((char *)payload);
-    char key = receivedData.charAt(0);
-    int value = receivedData.substring(2).toInt();
-    handleServo(key, value);
-  }
-}*/
-
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   counter++;
   if(type == WS_EVT_CONNECT){
@@ -137,22 +113,14 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
   } else if(type == WS_EVT_DATA){
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if(info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT){
-      
-     
-      
       // parse the message and handle the servo
-      
       char receivedData[len + 1];
       memcpy(receivedData, data, len);
       receivedData[len] = '\0';
       int delimiterIndex = strchr(receivedData, ':') - receivedData;
       char key = receivedData[0];
       int value = atoi(receivedData + delimiterIndex + 1);
-      
-    
-      
       handleServo(key, value);
-      
     }
   }
 }
