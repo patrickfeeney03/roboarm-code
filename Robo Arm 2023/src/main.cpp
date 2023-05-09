@@ -73,10 +73,12 @@ void loop() {
 
 // For both keypress and slider
 void handleServo(char key, int value) {
+  /*
   Serial.print("Received: ");
   Serial.print(key);
   Serial.print("\t");
   Serial.println(value);
+  */
 
   if (key == 'B') {
     moveServo(base, value, 0, 180);
@@ -116,13 +118,29 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
   }
 }*/
 
-void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
-  if(type == WS_EVT_DATA){
+void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  if(type == WS_EVT_CONNECT){
+    Serial.println("WebSocket client connected");
+  } else if(type == WS_EVT_DISCONNECT){
+    Serial.println("WebSocket client disconnected");
+  } else if(type == WS_EVT_DATA){
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
     if(info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT){
-      String receivedData = String((char*)data);
-      char key = receivedData.charAt(0);
-      int value = receivedData.substring(2).toInt();
+      Serial.print("Inside function Received: ");
+      Serial.write(data, len);
+      Serial.println();
+      // parse the message and handle the servo
+      
+      char receivedData[len + 1];
+      memcpy(receivedData, data, len);
+      receivedData[len] = '\0';
+      int delimiterIndex = strchr(receivedData, ':') - receivedData;
+      char key = receivedData[0];
+      int value = atoi(receivedData + delimiterIndex + 1);
+      
+      Serial.print("After parsing: ");
+      Serial.print(key);
+      Serial.println(value);
       handleServo(key, value);
     }
   }
