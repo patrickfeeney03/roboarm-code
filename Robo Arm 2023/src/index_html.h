@@ -185,7 +185,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     </div>
     <div>
         <label>Gripper:</label>
-        <input type="range" min="10" max="73" value="50" step="1" data-key="G">
+        <input type="range" min="10" max="73" value="41" step="1" data-key="G">
     </div>
 </body>
 </html>
