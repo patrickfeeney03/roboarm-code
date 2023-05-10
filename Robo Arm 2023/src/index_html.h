@@ -3,7 +3,8 @@
 
 const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <title>Keypress Detection</title>
     <style>
@@ -55,6 +56,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             margin-bottom: 10px;
             padding-left: 20px;
             padding-right: 20px;
+            font-size: 18px;
         }
 
         label {
@@ -75,15 +77,11 @@ const char index_html[] PROGMEM = R"rawliteral(
             };
 
             var sliders = document.querySelectorAll("input[type=range]");
-            let lastSliderUpdate = 0;
             sliders.forEach(function (slider) {
                 slider.addEventListener("input", function () {
-                    const timeNow = performance.now();
-                    console.log(timeNow - lastSliderUpdate);
                     var key = slider.getAttribute("data-key");
                     var value = slider.value;
                     socket.send(key + ":" + value);
-                    lastSliderUpdate = timeNow;
                 });
             });
 
@@ -137,14 +135,11 @@ const char index_html[] PROGMEM = R"rawliteral(
                 }
             }
 
-            let lastKeyUpdate = 0;
-
-            function updateSliders(timestamp) {
-                lastKeyUpdate = timestamp;
+            function updateSliders() {
                 for (const key in keyState) {
-                    if (keyState[key]) {
+                    if (keyState[key]) { // If the value of the key is true...
                         const mapping = keyToSliderMapping[key];
-                        if (mapping) {
+                        if (mapping) { // If the key is part of the keyToSliderMapping...
                             const delta = keyState["SHIFT"] ? mapping.delta * 2 : mapping.delta;
                             updateSlider(mapping.key, delta);
                         }
@@ -162,30 +157,29 @@ const char index_html[] PROGMEM = R"rawliteral(
 <body>
     <h1>Keypress Detection</h1>
     <p>Press the specified keys: W, S, A, D, Q, E, H, U, J, I, K, or O.</p>
-    <p id="output"></p>
     <div>
-        <label>Base:</label>
-        <input type="range" min="0" max="180" value="90" step="1" data-key="B">
+        <label for="base">Base:</label>
+        <input type="range" id="base" min="0" max="180" value="90" step="1" data-key="B">
     </div>
     <div>
-        <label>Shoulder:</label>
-        <input type="range" min="15" max="165" value="90" step="1" data-key="S">
+        <label for="shoulder">Shoulder:</label>
+        <input type="range" id="shoulder" min="15" max="165" value="90" step="1" data-key="S">
     </div>
     <div>
-        <label>Elbow:</label>
-        <input type="range" min="0" max="180" value="90" step="1" data-key="E">
+        <label for="elbow">Elbow:</label>
+        <input type="range" id="elbow" min="0" max="180" value="90" step="1" data-key="E">
     </div>
     <div>
-        <label>Vertical Wrist:</label>
-        <input type="range" min="0" max="180" value="90" step="1" data-key="V">
+        <label for="vertical-wrist">Vertical Wrist:</label>
+        <input type="range" id="vertical-wrist" min="0" max="180" value="90" step="1" data-key="V">
     </div>
     <div>
-        <label>Rotatory Wrist:</label>
-        <input type="range" min="0" max="180" value="90" step="1" data-key="R">
+        <label for="rotatory-wrist">Rotatory Wrist:</label>
+        <input type="range" id="rotatory-wrist" min="0" max="180" value="90" step="1" data-key="R">
     </div>
     <div>
-        <label>Gripper:</label>
-        <input type="range" min="10" max="73" value="41" step="1" data-key="G">
+        <label for="gripper">Gripper:</label>
+        <input type="range" id="gripper" min="10" max="73" value="41" step="1" data-key="G">
     </div>
 </body>
 </html>

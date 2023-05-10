@@ -22,7 +22,8 @@ Servo gripper;
 
 void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain);
 void handleServo(char key, int value);
-void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
+              uint8_t *data, size_t len);
 
 void setup() {
   Serial.begin(115200);
@@ -94,7 +95,8 @@ void moveServo(Servo& servo, int value, int lowConstrain, int highConstrain) {
   servo.write(position);
 }
 
-void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg,
+              uint8_t *data, size_t len) {
   if(type == WS_EVT_CONNECT){
     Serial.println("WebSocket client connected");
   } else if(type == WS_EVT_DISCONNECT){
@@ -106,9 +108,8 @@ void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventTyp
       char receivedData[len + 1];
       memcpy(receivedData, data, len);
       receivedData[len] = '\0';
-      int delimiterIndex = strchr(receivedData, ':') - receivedData;
       char key = receivedData[0];
-      int value = atoi(receivedData + delimiterIndex + 1);
+      int value = atoi(receivedData + 2);
       handleServo(key, value);
     }
   }
